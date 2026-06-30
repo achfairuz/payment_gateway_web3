@@ -11,3 +11,127 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum UserRole {
+  USER
+  ADMIN
+  OWNER
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  EXPIRED
+  CANCELLED
+}
+
+enum MerchantStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  merchants Merchant[]
+}
+
+model Merchant {
+  id     String         @id @default(cuid())
+  userId String
+  user   User           @relation(fields: [userId], references: [id])
+  name   String
+  status MerchantStatus @default(ACTIVE)
+
+  apiKeys    String @unique
+  secretKeys String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wallets  Wallet[]
+  invoices Invoice[]
+}
+
+model Wallet {
+  id String @id @default(cuid())
+
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+
+  address String
+  network String
+
+  isDefault Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  invoices  Invoice[]
+
+  @@unique([merchantId, address])
+}
+
+model Invoice {
+  id String @id @default(cuid())
+
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+
+  invoiceNumber String        @unique
+  amount        Decimal       @db.Decimal(65, 30)
+  currency      String
+  status        InvoiceStatus @default(PENDING)
+  expiresAt     DateTime
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  wallet   Wallet? @relation(fields: [walletId], references: [id])
+  walletId String?
+
+  transactions Transaction[]
+  webhookLogs  WebhookLog[]
+}
+
+model Transaction {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+
+  txHash      String            @unique
+  blockNumber BigInt?
+  amount      Decimal           @db.Decimal(65, 30)
+  status      TransactionStatus @default(PENDING)
+  confirmedAt DateTime?
+  createdAt   DateTime          @default(now())
+}
+
+model WebhookLog {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+
+  endpoint String
+
+  requestBody Json
+
+  responseBody Json?
+
+  statusCode Int?
+
+  retryCount Int @default(0)
+
+  createdAt DateTime @default(now())
+}

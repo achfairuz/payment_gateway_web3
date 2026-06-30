@@ -1,25 +1,35 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "resolvePackageJsonExports": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
+    "module": "commonjs",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
+    "esModuleInterop": true,
+    "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
+    "strict": true,
     "strictNullChecks": true,
+    "noImplicitAny": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "paths": {
+      "@auth/*": ["src/auth/*"],
+      "@merchant/*": ["src/merchant/*"],
+      "@invoice/*": ["src/invoice/*"],
+      "@payment/*": ["src/payment/*"],
+      "@wallet/*": ["src/wallet/*"],
+      "@blockchain/*": ["src/blockchain/*"],
+      "@webhook/*": ["src/webhook/*"],
+      "@queue/*": ["src/queue/*"],
+      "@common/*": ["src/common/*"],
+      "@config/*": ["src/config/*"],
+      "@prisma/*": ["src/prisma/*"],
+      "@shared/*": ["src/shared/*"]
+    }
   }
 }
