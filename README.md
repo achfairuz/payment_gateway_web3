@@ -1,169 +1,154 @@
 # Web3 Payment Gateway
 
-A production-ready cryptocurrency payment gateway built with NestJS, TypeScript, Prisma, PostgreSQL, BullMQ, Redis, and Ethers.js.
+![NestJS](https://img.shields.io/badge/NestJS-v11-E0234E?logo=nestjs)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)
+![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Prisma_ORM-4169E1?logo=postgresql)
+![License](https://img.shields.io/badge/license-UNLICENSED-lightgrey)
 
-Designed to demonstrate backend engineering and Web3 integration using Clean Architecture, Domain Driven Design, and modern best practices.
+Backend service untuk menerima pembayaran cryptocurrency secara otomatis. Merchant cukup buat invoice — sistem yang mengurus verifikasi transaksi di blockchain, update status, dan kirim webhook.
 
 ---
 
-## Features
+## Fitur
 
-- Merchant authentication (JWT + API Key)
-- Invoice creation and management
-- Wallet management
-- Blockchain event listener (Ethereum & Polygon)
-- Automatic payment verification via ethers.js
-- Webhook delivery with retry and signature verification
-- Queue-based async processing with BullMQ
-- Admin dashboard endpoints
-- Health checks and monitoring
-- Swagger API documentation
+| Fitur | Keterangan |
+|-------|------------|
+| Merchant Auth | JWT Access + Refresh Token + API Key |
+| Invoice Management | Buat, lacak, dan expire invoice otomatis |
+| Wallet Management | Generate wallet address per merchant |
+| Blockchain Listener | Listen event dari smart contract via ethers.js |
+| Payment Verification | Verifikasi transaksi on-chain secara otomatis |
+| Queue Processing | BullMQ untuk async task (tidak blocking HTTP) |
+| Webhook Delivery | Notifikasi ke merchant + retry + HMAC signature |
+| Admin Dashboard | Statistik merchant, payment, dan volume |
+| API Documentation | Swagger UI di `/api/docs` |
 
 ---
 
 ## Tech Stack
 
-| Layer        | Technology                          |
-|--------------|-------------------------------------|
-| Framework    | NestJS + TypeScript                 |
-| Runtime      | Node.js 20                          |
-| Database     | PostgreSQL + Prisma ORM             |
-| Cache        | Redis                               |
-| Queue        | BullMQ                              |
-| Blockchain   | ethers.js v6                        |
-| Auth         | JWT (Access + Refresh) + API Key    |
-| Validation   | class-validator + class-transformer |
-| Docs         | Swagger                             |
-| Logging      | nestjs-pino                         |
-| Testing      | Jest                                |
+| Layer | Teknologi |
+|-------|-----------|
+| Framework | NestJS 11 + TypeScript |
+| Runtime | Node.js 20 |
+| Database | PostgreSQL + Prisma ORM v7 |
+| Cache & Queue | Redis + BullMQ |
+| Blockchain | ethers.js v6 |
+| Smart Contract | Solidity 0.8.20 (EVM) |
+| Auth | JWT + Passport.js + bcrypt |
+| Validation | class-validator + class-transformer |
+| Docs | Swagger / OpenAPI |
+| Logging | nestjs-pino |
+| Testing | Jest |
 
 ---
 
-## Architecture
+## Arsitektur
 
 ```
-Controller  →  Service  →  Repository  →  Prisma
+HTTP Request
+     ↓
+Controller          ← validasi input, return response
+     ↓
+Service             ← semua business logic di sini
+     ↓
+Repository          ← akses database
+     ↓
+Prisma ORM          ← query ke PostgreSQL
 ```
 
-Follows **Clean Architecture** with **Domain Driven Design (DDD)**.
-
-- Controllers: validate request, call service, return response
-- Services: all business logic lives here
-- Repositories: database access layer
+Pattern: **Clean Architecture + Domain Driven Design (DDD)**
 
 ---
 
-## Folder Structure
+## Struktur Folder
 
 ```
 src/
-├── auth/               # JWT & API key authentication
-├── merchant/           # Merchant registration & profile
-├── invoice/            # Invoice creation & management
-├── payment/            # Payment verification
-├── wallet/             # Wallet management
-├── blockchain/         # ethers.js listener & transaction checks
-├── webhook/            # Webhook delivery & retry
-├── queue/              # BullMQ queue definitions & processors
-├── notification/       # Notification events
-├── health/             # Health check endpoints
-├── common/             # Global filters, interceptors, decorators
-├── config/             # Environment config
-├── prisma/             # Prisma service
-└── shared/             # Shared DTOs, utils, types
-```
+├── auth/           # JWT, refresh token, API key auth
+├── merchant/       # Profil & manajemen merchant
+├── invoice/        # Buat & kelola invoice
+├── payment/        # Verifikasi pembayaran
+├── wallet/         # Generate & kelola wallet address
+├── blockchain/     # ethers.js listener & provider
+├── webhook/        # Delivery, retry, signature
+├── queue/          # BullMQ processors & producers
+├── notification/   # Event notifikasi internal
+├── health/         # Health check endpoint
+├── common/         # Filter, interceptor, decorator global
+├── config/         # Environment config
+├── prisma/         # Prisma service
+└── shared/         # DTO, utils, types yang dipakai bersama
 
-Each module contains:
-
-```
-module/
-├── controller/
-├── service/
-├── repository/
-├── dto/
-├── entity/
-├── interfaces/
-└── validators/
+contracts/
+└── PaymentGateway.sol  # Smart contract (Solidity)
 ```
 
 ---
 
-## Getting Started
+## Cara Menjalankan
 
-### Prerequisites
+### Prasyarat
 
 - Node.js 20+
-- PostgreSQL
-- Redis
-- npm
+- PostgreSQL (running)
+- Redis (running)
 
-### 1. Clone the repository
+### 1. Clone & install
 
 ```bash
 git clone https://github.com/achfairuz/web3-payment-gateway.git
 cd web3-payment-gateway
-```
-
-### 2. Install dependencies
-
-```bash
 npm install
 ```
 
-### 3. Configure environment variables
+### 2. Setup environment
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
+Isi nilai di `.env`:
 
 ```env
 PORT=3000
-
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/web3_gateway
-
-# Redis
+DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/web3_gateway
 REDIS_URL=redis://localhost:6379
-
-# JWT
-JWT_SECRET=your_jwt_secret
-JWT_REFRESH_SECRET=your_jwt_refresh_secret
-JWT_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
-
-# Blockchain
-RPC_URL_ETHEREUM=https://mainnet.infura.io/v3/YOUR_KEY
-RPC_URL_POLYGON=https://polygon-mainnet.infura.io/v3/YOUR_KEY
-PAYMENT_ADDRESS=0xYourWalletAddress
-
-# Never commit private keys
-PRIVATE_KEY=your_private_key
+JWT_SECRET=<random 64 char string>
+JWT_REFRESH_SECRET=<random 64 char string>
+RPC_URL_ETHEREUM_WS=wss://mainnet.infura.io/ws/v3/YOUR_KEY
+CONTRACT_ADDRESS=0x...
+PAYMENT_ADDRESS=0x...
+PRIVATE_KEY=<never commit this>
 ```
 
-### 4. Run database migrations
+> Generate JWT secret:
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+> ```
+
+### 3. Migrate database
 
 ```bash
 npx prisma migrate dev
 ```
 
-### 5. Start the server
+### 4. Jalankan server
 
 ```bash
-# Development (watch mode)
+# Development
 npm run start:dev
 
 # Production
-npm run build
-npm run start:prod
+npm run build && npm run start:prod
 ```
 
 ---
 
-## API Documentation
+## API Docs
 
-Swagger UI is available at:
+Swagger tersedia di:
 
 ```
 http://localhost:3000/api/docs
@@ -171,129 +156,80 @@ http://localhost:3000/api/docs
 
 ---
 
-## Payment Flow
+## Alur Pembayaran
 
 ```
-Merchant                 Backend                    Blockchain
-   │                        │                           │
-   │  POST /invoices         │                           │
-   │───────────────────────>│                           │
-   │  ← invoice + address   │                           │
-   │                        │                           │
-Customer pays to address   │                           │
-   │                        │  Listen for tx event      │
-   │                        │<─────────────────────────│
-   │                        │  Verify tx on-chain       │
-   │                        │──────────────────────────>│
-   │                        │  ← confirmed              │
-   │                        │                           │
-   │  Webhook delivered     │                           │
-   │<───────────────────────│                           │
+[Merchant]  POST /invoices
+               ↓
+           Invoice dibuat + wallet address dikirim ke customer
+               ↓
+[Customer]  Bayar ke wallet address via blockchain
+               ↓
+[Contract]  emit PaymentReceived event
+               ↓
+[Backend]   ethers.js menangkap event → push ke BullMQ queue
+               ↓
+[Queue]     Processor verifikasi tx on-chain
+               ↓
+[Backend]   Update status invoice → kirim webhook
+               ↓
+[Merchant]  Terima notifikasi webhook
 ```
 
 ---
 
-## Queue Architecture
+## Jaringan yang Didukung
 
-| Queue           | Purpose                                |
-|-----------------|----------------------------------------|
-| verify-payment  | Verify incoming blockchain transactions |
-| webhook         | Deliver webhooks to merchant endpoints  |
-| retry           | Retry failed webhook deliveries         |
-| notification    | Send internal notifications             |
-
-Long-running tasks are never processed inside HTTP requests.
+- Ethereum Mainnet / Sepolia (testnet)
+- Polygon Mainnet / Amoy (testnet)
 
 ---
 
-## Supported Networks
+## Format Response
 
-- Ethereum (Mainnet / Sepolia)
-- Polygon (Mainnet / Amoy)
-
----
-
-## Security
-
-- Helmet (HTTP headers)
-- CORS
-- Rate limiting
-- Input validation via class-validator
-- Webhook HMAC signature verification
-- Hashed secrets — no plaintext storage
-- No stack traces exposed in responses
-
----
-
-## Response Format
-
-**Success**
 ```json
-{
-  "success": true,
-  "message": "...",
-  "data": {}
-}
-```
+// Success
+{ "success": true, "message": "...", "data": {} }
 
-**Error**
-```json
-{
-  "success": false,
-  "message": "...",
-  "errors": []
-}
+// Error
+{ "success": false, "message": "...", "errors": [] }
 ```
 
 ---
 
-## Running Tests
+## Testing
 
 ```bash
-# Unit tests
-npm run test
-
-# Watch mode
-npm run test:watch
-
-# Coverage report
-npm run test:cov
-
-# E2E tests
-npm run test:e2e
+npm run test          # unit test
+npm run test:cov      # coverage report
+npm run test:e2e      # end-to-end test
 ```
 
 ---
 
-## Git Convention
+## Dokumentasi Lanjutan
 
-**Branches**
-
-```
-feature/...
-bugfix/...
-hotfix/...
-```
-
-**Commits**
-
-```
-feat:     new feature
-fix:      bug fix
-refactor: code refactoring
-docs:     documentation
-test:     tests
-style:    formatting
-```
+| Dokumen | Isi |
+|---------|-----|
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Checklist urutan pengerjaan fitur |
+| [ROADMAP.md](ROADMAP.md) | Detail teknis setiap phase (konsep, flow, struktur file) |
+| [contracts/README.md](contracts/README.md) | Smart contract & integrasi Solidity |
+| [.env.example](.env.example) | Template semua environment variable |
 
 ---
 
-## License
+## Keamanan
 
-UNLICENSED — private project for portfolio and learning purposes.
+- Helmet + CORS + Rate Limiter aktif di semua endpoint
+- Password & API Key di-hash sebelum disimpan (bcrypt)
+- Private key tidak pernah disimpan plaintext
+- Webhook menggunakan HMAC-SHA256 signature
+- Stack trace tidak pernah dikembalikan ke client
 
 ---
 
-## Author
+## Lisensi
 
-**achfairuz**
+UNLICENSED — project portfolio & pembelajaran.
+
+**Author:** achfairuz
