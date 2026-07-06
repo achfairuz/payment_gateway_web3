@@ -7,10 +7,13 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { PinoLogger } from 'nestjs-pino';
+import { ResponseHelper } from '../helpers/response.helper';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  private readonly logger = new PinoLogger({ renameContext: GlobalExceptionFilter.name });
+  private readonly logger = new PinoLogger({
+    renameContext: GlobalExceptionFilter.name,
+  });
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -44,10 +47,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       `${request.method} ${request.url} - ${status} - ${message}`,
     );
 
-    response.status(status).json({
-      success: false,
-      message,
-      errors,
-    });
+    response.status(status).json(ResponseHelper.error(message, errors));
   }
 }

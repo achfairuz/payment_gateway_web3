@@ -6,28 +6,17 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-
-export interface SuccessResponse<T> {
-  success: true;
-  message: string;
-  data: T;
-}
+import { ApiSuccessResponse, ResponseHelper } from '../helpers/response.helper';
 
 @Injectable()
 export class ResponseInterceptor<T> implements NestInterceptor<
   T,
-  SuccessResponse<T>
+  ApiSuccessResponse<T>
 > {
   intercept(
-    _context: ExecutionContext,
+    context: ExecutionContext,
     next: CallHandler<T>,
-  ): Observable<SuccessResponse<T>> {
-    return next.handle().pipe(
-      map((data) => ({
-        success: true,
-        message: 'Success',
-        data,
-      })),
-    );
+  ): Observable<ApiSuccessResponse<T>> {
+    return next.handle().pipe(map((data) => ResponseHelper.success(data)));
   }
 }
