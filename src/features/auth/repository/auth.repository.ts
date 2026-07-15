@@ -26,6 +26,8 @@ export class AuthRepository {
     email: string,
     hashedPassword: string,
     merchantName: string,
+    apiKey: string,
+    hashedSecretKey: string,
   ): Promise<UserRecord> {
     return this.prisma.user.create({
       data: {
@@ -34,8 +36,8 @@ export class AuthRepository {
         merchants: {
           create: {
             name: merchantName,
-            apiKey: '',
-            secretKey: '',
+            apiKey,
+            secretKey: hashedSecretKey,
           },
         },
       },

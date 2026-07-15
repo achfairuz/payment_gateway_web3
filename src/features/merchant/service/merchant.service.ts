@@ -1,10 +1,11 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaErrorHandler } from '@common/handlers/prisma-error.handler';
+import { ApiCredentialsHelper } from '@common/helpers/api-credentials.helper';
 import {
   IMerchantRepository,
   MERCHANT_REPOSITORY,
 } from '@merchant/interfaces/merchant.interface';
-import { MerchantEntity } from '@merchant/entity/merchant.entity';
+import { MerchantCreatedEntity, MerchantEntity } from '@merchant/entity/merchant.entity';
 import { CreateMerchantDto } from '@merchant/dto/merchant.dto';
 
 @Injectable()
@@ -14,15 +15,16 @@ export class MerchantService {
     private readonly merchantRepository: IMerchantRepository,
   ) {}
 
-  async create(dto: CreateMerchantDto, userId: string): Promise<MerchantEntity> {
+  async create(dto: CreateMerchantDto, userId: string): Promise<MerchantCreatedEntity> {
+    const { apiKey, rawSecretKey, hashedSecretKey } = await ApiCredentialsHelper.generate();
     try {
       const merchant = await this.merchantRepository.createMerchant(
         dto.name,
         userId,
-        dto.apiKey,
-        dto.secretKey,
+        apiKey,
+        hashedSecretKey,
       );
-      return MerchantEntity.fromPrisma(merchant);
+      return MerchantCreatedEntity.fromPrismaWithSecret(merchant, rawSecretKey);
     } catch (error) {
       PrismaErrorHandler.handle(error, { conflictMessage: 'API key is already in use' });
     }

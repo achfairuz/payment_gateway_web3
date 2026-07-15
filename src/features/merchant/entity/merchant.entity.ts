@@ -39,3 +39,25 @@ export class MerchantEntity {
     return entity;
   }
 }
+
+/**
+ * Response shape for merchant creation only — includes the raw secretKey.
+ * This is the one and only time the raw value is ever exposed; afterwards
+ * only its bcrypt hash exists, so it can never be shown again.
+ */
+export class MerchantCreatedEntity extends MerchantEntity {
+  @ApiProperty({ description: 'Raw secret key — store it securely, it cannot be retrieved again' })
+  secretKey!: string;
+
+  static fromPrismaWithSecret(merchant: PrismaMerchant, rawSecretKey: string): MerchantCreatedEntity {
+    const entity = new MerchantCreatedEntity();
+    entity.id = merchant.id;
+    entity.name = merchant.name;
+    entity.status = merchant.status;
+    entity.apiKey = merchant.apiKey;
+    entity.createdAt = merchant.createdAt;
+    entity.updatedAt = merchant.updatedAt;
+    entity.secretKey = rawSecretKey;
+    return entity;
+  }
+}

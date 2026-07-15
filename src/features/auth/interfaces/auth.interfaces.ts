@@ -5,6 +5,13 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
+export interface RegisterResult extends AuthTokens {
+  merchant: {
+    apiKey: string;
+    secretKey: string;
+  };
+}
+
 export interface AuthenticatedRequest extends Request {
   user: { id: string; email: string; role: string };
 }

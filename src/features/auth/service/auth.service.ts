@@ -7,7 +7,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { createHash } from 'crypto';
-import { AuthTokens, JwtPayload } from '../interfaces/auth.interfaces';
+import { ApiCredentialsHelper } from '@common/helpers/api-credentials.helper';
+import { AuthTokens, JwtPayload, RegisterResult } from '../interfaces/auth.interfaces';
 import { AuthRepository, UserRecord } from '../repository/auth.repository';
 
 @Injectable()
@@ -21,18 +22,27 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async register(email: string, password: string, merchantName: string): Promise<AuthTokens> {
+  async register(email: string, password: string, merchantName: string): Promise<RegisterResult> {
     const existing = await this.authRepository.findByEmail(email);
     if (existing) throw new ConflictException('Email already registered');
 
     const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS);
+    const { apiKey, rawSecretKey, hashedSecretKey } = await ApiCredentialsHelper.generate();
+
     const user = await this.authRepository.createUserWithMerchant(
       email,
       hashedPassword,
       merchantName,
+      apiKey,
+      hashedSecretKey,
     );
 
-    return this.issueTokens({ sub: user.id, email: user.email, role: user.role });
+    const tokens = await this.issueTokens({ sub: user.id, email: user.email, role: user.role });
+
+    return {
+      ...tokens,
+      merchant: { apiKey, secretKey: rawSecretKey },
+    };
   }
 
   async login(email: string, password: string): Promise<AuthTokens> {
