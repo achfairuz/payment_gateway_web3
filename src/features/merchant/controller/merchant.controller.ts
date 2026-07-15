@@ -1,13 +1,9 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
 import { JwtGuard } from '@auth/guards/jwt.guard';
+import { AuthenticatedRequest } from '@auth/interfaces/auth.interfaces';
 import { MerchantService } from '../service/merchant.service';
 import { CreateMerchantDto } from '@merchant/dto/merchant.dto';
-
-interface AuthenticatedRequest extends Request {
-  user: { id: string; email: string; role: string };
-}
 
 @ApiTags('Merchant')
 @Controller('merchant')

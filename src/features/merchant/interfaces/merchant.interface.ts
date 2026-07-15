@@ -4,6 +4,7 @@ export const MERCHANT_REPOSITORY = Symbol('MERCHANT_REPOSITORY');
 
 export interface IMerchantRepository {
   findById(id: string): Promise<PrismaMerchant | null>;
+  findByIdAndUserId(id: string, userId: string): Promise<PrismaMerchant | null>;
   createMerchant(
     name: string,
     userId: string,

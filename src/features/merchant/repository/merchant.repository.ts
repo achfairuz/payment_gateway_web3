@@ -9,6 +9,10 @@ export class MerchantRepository implements IMerchantRepository {
   findById(id: string) {
     return this.prisma.merchant.findUnique({ where: { id } });
   }
+
+  findByIdAndUserId(id: string, userId: string) {
+    return this.prisma.merchant.findFirst({ where: { id, userId } });
+  }
   createMerchant(name: string, userId: string, apiKey: string, secretKey: string) {
     return this.prisma.merchant.create({
       data: {

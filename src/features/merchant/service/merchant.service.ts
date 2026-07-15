@@ -1,11 +1,5 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { ResponseHelper } from '@common/helpers/response.helper';
-import { Prisma } from '../../../../generated/prisma/client';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaErrorHandler } from '@common/handlers/prisma-error.handler';
 import {
   IMerchantRepository,
   MERCHANT_REPOSITORY,
@@ -30,7 +24,7 @@ export class MerchantService {
       );
       return MerchantEntity.fromPrisma(merchant);
     } catch (error) {
-      this.handleError(error, 'API key is already in use');
+      PrismaErrorHandler.handle(error, { conflictMessage: 'API key is already in use' });
     }
   }
 
@@ -42,7 +36,7 @@ export class MerchantService {
       }
       return MerchantEntity.fromPrisma(merchant);
     } catch (error) {
-      this.handleError(error, 'Failed to retrieve merchant');
+      PrismaErrorHandler.handle(error);
     }
   }
 
@@ -63,11 +57,10 @@ export class MerchantService {
       );
       return MerchantEntity.fromPrisma(merchant);
     } catch (error) {
-      this.handleError(
-        error,
-        'API key is already in use',
-        'Merchant not found',
-      );
+      PrismaErrorHandler.handle(error, {
+        conflictMessage: 'API key is already in use',
+        notFoundMessage: 'Merchant not found',
+      });
     }
   }
 
@@ -76,24 +69,14 @@ export class MerchantService {
       const merchant = await this.merchantRepository.deleteMerchant(id, userId);
       return MerchantEntity.fromPrisma(merchant);
     } catch (error) {
-      this.handleError(error, undefined, 'Merchant not found');
+      PrismaErrorHandler.handle(error, { notFoundMessage: 'Merchant not found' });
     }
   }
 
-  private handleError(
-    error: unknown,
-    conflictMessage?: string,
-    notFoundMessage?: string,
-  ): never {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002' && conflictMessage) {
-        throw new ConflictException(conflictMessage);
-      }
-      if (error.code === 'P2025' && notFoundMessage) {
-        throw new NotFoundException(notFoundMessage);
-      }
+  async verifyOwnership(id: string, userId: string): Promise<void> {
+    const merchant = await this.merchantRepository.findByIdAndUserId(id, userId);
+    if (!merchant) {
+      throw new NotFoundException('Merchant not found');
     }
-
-    ResponseHelper.throwHttpError(error);
   }
 }

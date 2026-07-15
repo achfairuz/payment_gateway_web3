@@ -5,6 +5,7 @@ import { MerchantController } from './controller/merchant.controller';
 import { MerchantService } from './service/merchant.service';
 import { MerchantRepository } from './repository/merchant.repository';
 import { MERCHANT_REPOSITORY } from './interfaces/merchant.interface';
+import { MerchantOwnershipGuard } from './guards/merchant-ownership.guard';
 
 @Module({
   imports: [PrismaModule, AuthModule],
@@ -12,7 +13,8 @@ import { MERCHANT_REPOSITORY } from './interfaces/merchant.interface';
   providers: [
     MerchantService,
     { provide: MERCHANT_REPOSITORY, useClass: MerchantRepository },
+    MerchantOwnershipGuard,
   ],
-  exports: [MerchantService],
+  exports: [MerchantService, MerchantOwnershipGuard],
 })
 export class MerchantModule {}
