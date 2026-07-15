@@ -5,5 +5,7 @@ import { WalletService } from '../service/wallet.service';
 @ApiTags('Wallet')
 @Controller('wallet')
 export class WalletController {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(private readonly walletService: WalletService) {
+
+  }
 }

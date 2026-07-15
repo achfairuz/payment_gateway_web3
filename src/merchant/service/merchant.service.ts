@@ -1,23 +1,30 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { ResponseHelper } from '@common/helpers/response.helper';
 import { Prisma } from '../../../generated/prisma/client';
-import { MerchantRepository } from '../repository/merchant.repository';
-import { CreateMerchantResponse } from '@merchant/interfaces/merchant.interface';
+import {
+  IMerchantRepository,
+  MERCHANT_REPOSITORY,
+} from '@merchant/interfaces/merchant.interface';
+import { MerchantEntity } from '@merchant/entity/merchant.entity';
 
 @Injectable()
 export class MerchantService {
-  constructor(private readonly merchantRepository: MerchantRepository) {}
+  constructor(
+    @Inject(MERCHANT_REPOSITORY)
+    private readonly merchantRepository: IMerchantRepository,
+  ) {}
 
   async create(
     name: string,
     userId: string,
     apiKey: string,
     secretKey: string,
-  ): Promise<CreateMerchantResponse> {
+  ): Promise<MerchantEntity> {
     try {
       const merchant = await this.merchantRepository.createMerchant(
         name,
@@ -25,22 +32,19 @@ export class MerchantService {
         apiKey,
         secretKey,
       );
-      return {
-        name: merchant.name,
-        userId: merchant.userId,
-      };
+      return MerchantEntity.fromPrisma(merchant);
     } catch (error) {
       this.handleError(error, 'API key is already in use');
     }
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<MerchantEntity> {
     try {
       const merchant = await this.merchantRepository.findById(id);
       if (!merchant) {
         throw new NotFoundException('Merchant not found');
       }
-      return merchant;
+      return MerchantEntity.fromPrisma(merchant);
     } catch (error) {
       this.handleError(error, 'Failed to retrieve merchant');
     }
@@ -52,15 +56,16 @@ export class MerchantService {
     name: string,
     apiKey: string,
     secretKey: string,
-  ) {
+  ): Promise<MerchantEntity> {
     try {
-      return await this.merchantRepository.updateMerchant(
+      const merchant = await this.merchantRepository.updateMerchant(
         id,
         userId,
         name,
         apiKey,
         secretKey,
       );
+      return MerchantEntity.fromPrisma(merchant);
     } catch (error) {
       this.handleError(
         error,
@@ -70,9 +75,10 @@ export class MerchantService {
     }
   }
 
-  async delete(id: string, userId: string) {
+  async delete(id: string, userId: string): Promise<MerchantEntity> {
     try {
-      return await this.merchantRepository.deleteMerchant(id, userId);
+      const merchant = await this.merchantRepository.deleteMerchant(id, userId);
+      return MerchantEntity.fromPrisma(merchant);
     } catch (error) {
       this.handleError(error, undefined, 'Merchant not found');
     }

@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { IMerchantRepository } from '../interfaces/merchant.interface';
 
 @Injectable()
-export class MerchantRepository {
+export class MerchantRepository implements IMerchantRepository {
   constructor(private readonly prisma: PrismaService) { }
 
   findById(id: string) {
