@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import configuration from './config/configuration';
+import { CommonModule } from './common/common.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './features/auth/auth.module';
 import { MerchantModule } from './features/merchant/merchant.module';
@@ -31,6 +32,7 @@ import { HealthModule } from './features/health/health.module';
         quietReqLogger: true,
       },
     }),
+    CommonModule,
     PrismaModule,
     AuthModule,
     MerchantModule,

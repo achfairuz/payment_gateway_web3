@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { createHash } from 'crypto';
 import { ApiCredentialsHelper } from '@common/helpers/api-credentials.helper';
+import { EncryptionService } from '@common/handlers/encrypt';
 import { AuthTokens, JwtPayload, RegisterResult } from '../interfaces/auth.interfaces';
 import { AuthRepository, UserRecord } from '../repository/auth.repository';
 
@@ -20,6 +21,7 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly encryptionService: EncryptionService,
   ) {}
 
   async register(email: string, password: string, merchantName: string): Promise<RegisterResult> {
@@ -27,21 +29,22 @@ export class AuthService {
     if (existing) throw new ConflictException('Email already registered');
 
     const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS);
-    const { apiKey, rawSecretKey, hashedSecretKey } = await ApiCredentialsHelper.generate();
+    const { apiKey, secretKey } = ApiCredentialsHelper.generate();
+    const encryptedSecretKey = this.encryptionService.encrypt(secretKey);
 
     const user = await this.authRepository.createUserWithMerchant(
       email,
       hashedPassword,
       merchantName,
       apiKey,
-      hashedSecretKey,
+      encryptedSecretKey,
     );
 
     const tokens = await this.issueTokens({ sub: user.id, email: user.email, role: user.role });
 
     return {
       ...tokens,
-      merchant: { apiKey, secretKey: rawSecretKey },
+      merchant: { apiKey, secretKey },
     };
   }
 

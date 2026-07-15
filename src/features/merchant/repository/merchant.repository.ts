@@ -24,14 +24,10 @@ export class MerchantRepository implements IMerchantRepository {
     });
   }
 
-  updateMerchant(id: string, userId: string, name: string, apiKey: string, secretKey: string) {
+  updateMerchant(id: string, userId: string, name?: string) {
     return this.prisma.merchant.update({
       where: { id, userId },
-      data: {
-        name,
-        apiKey,
-        secretKey,
-      },
+      data: { name },
     });
   }
   deleteMerchant(id: string, userId: string) {

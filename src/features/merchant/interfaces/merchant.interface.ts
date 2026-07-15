@@ -11,12 +11,6 @@ export interface IMerchantRepository {
     apiKey: string,
     secretKey: string,
   ): Promise<PrismaMerchant>;
-  updateMerchant(
-    id: string,
-    userId: string,
-    name: string,
-    apiKey: string,
-    secretKey: string,
-  ): Promise<PrismaMerchant>;
+  updateMerchant(id: string, userId: string, name?: string): Promise<PrismaMerchant>;
   deleteMerchant(id: string, userId: string): Promise<PrismaMerchant>;
 }
