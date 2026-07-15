@@ -5,16 +5,16 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import configuration from './config/configuration';
 import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
-import { MerchantModule } from './merchant/merchant.module';
-import { InvoiceModule } from './invoice/invoice.module';
-import { PaymentModule } from './payment/payment.module';
-import { WalletModule } from './wallet/wallet.module';
-import { BlockchainModule } from './blockchain/blockchain.module';
-import { WebhookModule } from './webhook/webhook.module';
-import { QueueModule } from './queue/queue.module';
-import { NotificationModule } from './notification/notification.module';
-import { HealthModule } from './health/health.module';
+import { AuthModule } from './features/auth/auth.module';
+import { MerchantModule } from './features/merchant/merchant.module';
+import { InvoiceModule } from './features/invoice/invoice.module';
+import { PaymentModule } from './features/payment/payment.module';
+import { WalletModule } from './features/wallet/wallet.module';
+import { BlockchainModule } from './features/blockchain/blockchain.module';
+import { WebhookModule } from './features/webhook/webhook.module';
+import { QueueModule } from './features/queue/queue.module';
+import { NotificationModule } from './features/notification/notification.module';
+import { HealthModule } from './features/health/health.module';
 
 @Module({
   imports: [

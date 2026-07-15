@@ -113,24 +113,33 @@ Controllers only:
 src/
 
 ```
-auth/
-merchant/
-invoice/
-payment/
-wallet/
-blockchain/
-webhook/
-queue/
-notification/
-health/
+features/
+  auth/
+  merchant/
+  invoice/
+  payment/
+  wallet/
+  blockchain/
+  webhook/
+  queue/
+  notification/
+  health/
 
 common/
+  helpers/
+  filters/
+  interceptors/
+  handlers/
 config/
 prisma/
 shared/
 ```
 
-Each module should contain:
+`features/*` holds business modules (Controller → Service → Repository → Prisma). `common/`, `config/`, `prisma/`, `shared/` are infrastructure/cross-cutting, not features.
+
+`common/handlers/` is for generic, reusable handler utilities (e.g. a shared response handler) — not for feature-specific processing. BullMQ job processors, blockchain event listeners, and webhook delivery logic each live inside their own module under `features/*`, not centralized in `common/`.
+
+Each module under `features/*` should contain:
 
 ```
 controller/
